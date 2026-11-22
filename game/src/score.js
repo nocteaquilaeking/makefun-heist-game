@@ -4,9 +4,10 @@
 import { CONFIG } from './config.js';
 
 export function scoreFor(state) {
-  const timeBonus =
+  const timeBonus = Math.round(
     Math.max(0, CONFIG.scoreTimeBonusCapSeconds - state.time) *
-    CONFIG.scoreTimeBonusPerSecond;
+      CONFIG.scoreTimeBonusPerSecond,
+  );
   const alarmPenalty = Math.round(state.alarm) * CONFIG.scoreAlarmPenaltyPerPoint;
   const score = state.lootValue + timeBonus - alarmPenalty;
   return {
