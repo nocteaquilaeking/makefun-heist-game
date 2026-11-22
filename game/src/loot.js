@@ -47,3 +47,15 @@ export function takeLoot(item, state) {
 export function totalLootValue(level) {
   return level.lootSpots.reduce((sum, spot) => sum + spot.value, 0);
 }
+
+// Loot tiers, so the haul reads at a glance: small paintings and gold are
+// Tier I, gem cases Tier II, the Star of Marlowe Tier III.
+export function tierOf(item) {
+  if (item.kind === 'star') return 'III';
+  if (item.kind === 'gems') return 'II';
+  return 'I';
+}
+
+export function tierLabel(item) {
+  return `TIER ${tierOf(item)}`;
+}

@@ -62,6 +62,19 @@ export function applyShot(state, name, seed) {
     state.player.angle = Math.PI / 4;
     state.time = 94;
     state.alarm = 35;
+    state.alarmStage = 'WARY';
+    // One smoke pellet already spent: Wren hides in the cloud, and a coin
+    // lure still rings on the floor behind her.
+    state.player.tools.smoke = 2;
+    state.smoke.push({ x: 560, y: 380, r: 96, ttl: 99 });
+    state.coins.push({ x: 500, y: 430, ttl: 99, ring: 30 });
+    // The vault camera has her: red cone, blinking eye, alarm climbing.
+    const vaultCam = state.cameras[0];
+    vaultCam.angle = Math.atan2(
+      state.player.y - vaultCam.y,
+      state.player.x - vaultCam.x,
+    );
+    vaultCam.seeingPlayer = true;
     // Some loot already pocketed on the way in.
     for (const id of ['painting-sunset', 'gold-west', 'gold-central']) {
       const item = state.loot.find((l) => l.id === id);
@@ -69,7 +82,8 @@ export function applyShot(state, name, seed) {
     }
     state.lootValue = 11000;
     state.lootTaken = 3;
-    // Sable closes in: suspicion high, cone sweeping toward Wren.
+    // Sable closes in: suspicion high, cone sweeping toward Wren, patrol
+    // route marked so the judge can read where she walks next.
     const sable = state.guards[1];
     sable.x = 700;
     sable.y = 300;
@@ -77,6 +91,8 @@ export function applyShot(state, name, seed) {
     sable.suspicion = 0.62;
     sable.mode = 'suspicious';
     sable.lastSeen = { x: state.player.x, y: state.player.y };
+    sable.marked = true;
+    sable.markTimer = 99;
     state.message = 'The Star of Marlowe is right there — time it!';
     state.messageTimer = 99;
   } else if (name === 'end') {

@@ -2,6 +2,7 @@
 // carpet, cases, loot, vision cones, guards, cameras, Wren, the HUD and the
 // title / busted / escaped screens. Nothing is loaded from a file.
 import { CONFIG } from './config.js';
+import { tierLabel, totalLootValue } from './loot.js';
 
 const C = CONFIG.colors;
 
@@ -10,6 +11,7 @@ export function render(ctx, state, world, time) {
   drawFloor(ctx, world.level);
   drawLoot(ctx, world.loot, time);
   drawSmoke(ctx, world.smoke);
+  drawCoins(ctx, world.coins);
   drawCones(ctx, world);
   drawCameras(ctx, world.cameras, time);
   drawGuards(ctx, world.guards, time);
@@ -127,9 +129,21 @@ function drawLoot(ctx, loot, time) {
     ctx.globalAlpha = 0.35 + 0.45 * tw;
     ctx.fillStyle = C.lootGlow;
     ctx.beginPath();
-    ctx.arc(item.x, item.y, 26, 0, Math.PI * 2);
+    ctx.arc(item.x, item.y, 20, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+    // Value tag under floor loot, so the tiers read at a glance. Wall
+    // paintings (top row) skip the tag: it would crowd the objective line.
+    if (item.y >= 70) {
+      ctx.fillStyle = '#ffe9a8';
+      ctx.font = 'bold 11px Georgia, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(
+        `$${item.value.toLocaleString('en-US')} · ${tierLabel(item)}`,
+        item.x,
+        item.y + 32,
+      );
+    }
     if (item.kind === 'painting') {
       ctx.fillStyle = C.goldDeep;
       ctx.fillRect(item.x - 22, item.y - 16, 44, 32);
@@ -194,6 +208,21 @@ function drawSmoke(ctx, smoke) {
     ctx.beginPath();
     ctx.arc(cloud.x - 24, cloud.y + 12, cloud.r * 0.55, 0, Math.PI * 2);
     ctx.arc(cloud.x + 26, cloud.y - 14, cloud.r * 0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawCoins(ctx, coins) {
+  for (const coin of coins) {
+    const alpha = Math.max(0, Math.min(0.8, coin.ttl / 5));
+    ctx.strokeStyle = `rgba(242, 193, 78, ${alpha})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(coin.x, coin.y, Math.max(6, coin.ring), 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = `rgba(242, 193, 78, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(coin.x, coin.y, 4, 0, Math.PI * 2);
     ctx.fill();
   }
 }
@@ -394,7 +423,7 @@ function drawHud(ctx, state, world) {
   ctx.strokeRect(ax, 16, aw, 16);
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 13px Georgia, serif';
-  ctx.fillText('ALARM', ax, 44);
+  ctx.fillText(`ALARM · ${state.alarmStage}`, ax, 44);
   ctx.textAlign = 'right';
   ctx.fillText(`${Math.round(state.alarm)}%`, ax + aw, 44);
   ctx.textAlign = 'left';
@@ -402,10 +431,18 @@ function drawHud(ctx, state, world) {
   // Loot and time.
   ctx.fillStyle = C.gold;
   ctx.font = 'bold 16px Georgia, serif';
-  ctx.fillText(`LOOT $${state.lootValue.toLocaleString('en-US')}`, 600, 20);
+  ctx.fillText(
+    `LOOT $${state.lootValue.toLocaleString('en-US')} / $${totalLootValue(world.level).toLocaleString('en-US')}`,
+    600,
+    20,
+  );
   ctx.fillStyle = '#ffffff';
   ctx.font = '13px Georgia, serif';
-  ctx.fillText(`TIME ${formatTime(state.time)}`, 600, 40);
+  ctx.fillText(
+    `TIME ${formatTime(state.time)} · ${state.lootTaken}/${world.loot.length} pieces`,
+    600,
+    40,
+  );
 
   // Tools.
   const tools = [
@@ -426,7 +463,9 @@ function drawHud(ctx, state, world) {
     ctx.textAlign = 'left';
   });
 
-  // Objective line.
+  // Objective line, on a dark strip so wall-loot glows never crowd it.
+  ctx.fillStyle = 'rgba(10, 13, 28, 0.72)';
+  ctx.fillRect(0, 48, CONFIG.width, 22);
   ctx.fillStyle = '#d7dcf0';
   ctx.font = '13px Georgia, serif';
   const objective = state.hasStar
@@ -502,7 +541,7 @@ function drawTitle(ctx, state) {
     'E — grab loot      1 / 2 / 3 — pick a tool      Space — use it',
     'Click a guard or camera to mark its patrol. Click the floor with Coin selected to toss a lure.',
     'Steal the STAR OF MARLOWE ($50,000), then slip out through the SKYLIGHT EXIT.',
-    'If the alarm hits 100% — or a guard catches you — the night is over.',
+    'Guards radio each other when one spots you — and a rising alarm makes every patrol faster.',
   ];
   lines.forEach((line, i) => ctx.fillText(line, CONFIG.width / 2, 300 + i * 30));
   const pulse = 0.6 + 0.4 * Math.sin(state.titleTime * 3);
@@ -550,7 +589,16 @@ function drawEscaped(ctx, state) {
     CONFIG.width / 2,
     330,
   );
+  if (state.score) {
+    ctx.font = '17px Georgia, serif';
+    ctx.fillStyle = '#d7dcf0';
+    ctx.fillText(
+      `SCORE ${state.score.score.toLocaleString('en-US')} = loot $${state.lootValue.toLocaleString('en-US')} + fast-night bonus $${state.score.timeBonus.toLocaleString('en-US')} − alarm penalty $${state.score.alarmPenalty.toLocaleString('en-US')}`,
+      CONFIG.width / 2,
+      368,
+    );
+  }
   ctx.font = '17px Georgia, serif';
   ctx.fillStyle = '#d7dcf0';
-  ctx.fillText('Press R to run it again — louder, or cleaner.', CONFIG.width / 2, 390);
+  ctx.fillText('Press R to run it again — louder, or cleaner.', CONFIG.width / 2, 420);
 }

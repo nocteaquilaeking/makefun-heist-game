@@ -2,6 +2,8 @@
 // alarm meter, win and lose conditions, and the update loop that ties the
 // player, guards, cameras and loot together.
 import { CONFIG } from './config.js';
+import { updateAlarmStage } from './alarm.js';
+import { scoreFor } from './score.js';
 import { createCamera, updateCamera } from './cameras.js';
 import { createGuard, updateGuard } from './guards.js';
 import { buildLevel } from './level.js';
@@ -16,6 +18,7 @@ export function createState(seed = 1) {
     time: 0,
     titleTime: 0,
     alarm: 0,
+    alarmStage: 'CALM',
     lootValue: 0,
     lootTaken: 0,
     hasStar: false,
@@ -24,6 +27,7 @@ export function createState(seed = 1) {
     messageTimer: 0,
     bustedReason: '',
     rank: '',
+    score: null,
     shotFrozen: false,
     spaceHeld: false,
     level,
@@ -35,12 +39,6 @@ export function createState(seed = 1) {
     coins: [],
     caughtBy: null,
   };
-}
-
-export function rankFor(state) {
-  if (state.alarm < 20 && state.time < 240) return 'Clean';
-  if (state.alarm < 60) return 'Loud';
-  return 'Sloppy';
 }
 
 export function update(state, dt, input, audio) {
@@ -94,6 +92,7 @@ export function update(state, dt, input, audio) {
     state.alarm -= CONFIG.alarmDecay * dt;
   }
   state.alarm = Math.max(0, Math.min(100, state.alarm));
+  updateAlarmStage(state, audio);
 
   // A chase whose grace window ran out with the thief still in sight ends it.
   // Suspicion only stays at its peak while the guard still sees Wren: if the
@@ -133,12 +132,13 @@ export function update(state, dt, input, audio) {
     audio.pickup();
   }
 
-  // Win: the Star, then the skylight.
+  // Win: the Star, then the skylight. The getaway scores the whole night.
   if (state.hasStar) {
     const exit = state.level.exit;
     if (Math.hypot(state.player.x - exit.x, state.player.y - exit.y) < exit.r + 6) {
       state.mode = 'escaped';
-      state.rank = rankFor(state);
+      state.score = scoreFor(state);
+      state.rank = state.score.rank;
       audio.win();
     }
   }

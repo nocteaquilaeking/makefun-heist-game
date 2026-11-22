@@ -10,10 +10,15 @@ skylight before the alarm hits 100%.
 [![reward](https://make.fun/badge/best-heist-game-20261122-0559/nocteaquilaeking/makefun-heist-game/reward.svg)](https://make.fun/bounty/best-heist-game-20261122-0559?utm_source=github&utm_medium=readme&utm_campaign=best-heist-game-20261122-0559)
 
 Three galleries, several routes through each. Guards patrol with vision cones
-that turn from gold to red as suspicion grows; cameras sweep the vault and
-raise the alarm faster than any guard. Smoke pellets, tossed coins and an EMP
-burst — each in short supply — are the tools that buy a way through. A chase
-always opens with a SPOTTED! grace window, so getting caught is fair.
+that turn from gold to red as suspicion grows, and they radio each other when
+one spots you — a shout pulls nearby patrols toward your last-seen spot.
+Cameras sweep the vault and raise the alarm faster than any guard. Smoke
+pellets, tossed coins and an EMP burst — each in short supply — are the tools
+that buy a way through. A chase always opens with a SPOTTED! grace window, so
+getting caught is fair. The alarm runs in stages (CALM, WARY, LOCKDOWN) and
+every patrol walks faster as it climbs. Loot comes in tiers — paintings and
+gold, gem cases, the Star itself — and the getaway scores the whole night:
+loot, plus a bonus for a fast night, minus an alarm penalty.
 
 ## Run it
 

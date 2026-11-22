@@ -32,6 +32,22 @@ export const CONFIG = {
   // Alarm meter 0..100.
   alarmDecay: 4.5,
 
+  // Alarm stages: the hotter the museum, the faster every patrol walks.
+  // CALM below 35, WARY from 35, LOCKDOWN from 70.
+  alarmWaryAt: 35,
+  alarmLockdownAt: 70,
+  guardSpeedCalm: 1,
+  guardSpeedWary: 1.12,
+  guardSpeedLockdown: 1.25,
+
+  // Escape scoring: loot, plus a bonus for a fast night, minus the noise.
+  scoreTimeBonusPerSecond: 150, // for every second under 300
+  scoreTimeBonusCapSeconds: 300,
+  scoreAlarmPenaltyPerPoint: 400,
+  scoreGhostAt: 100000,
+  scoreCleanAt: 60000,
+  scoreLoudAt: 30000,
+
   // Tools.
   smokeCharges: 3,
   smokeRadius: 96,
