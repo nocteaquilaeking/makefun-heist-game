@@ -58,13 +58,23 @@ export function updateGuard(guard, dt, world) {
   if (guard.markTimer > 0) guard.markTimer -= dt;
 
   const seen = guardSeesPlayer(guard, player, level, smoke);
-  const rate = seen
+  let rate = seen
     ? CONFIG.suspicionRate * (player.sneak ? CONFIG.suspicionSneakFactor : 1)
     : -CONFIG.suspicionDecay;
-  guard.suspicion = Math.max(0, Math.min(1, guard.suspicion + rate * dt));
   if (seen) {
     guard.lastSeen = { x: player.x, y: player.y };
   }
+  // Footsteps: a running thief is heard up close, even out of sight, so
+  // sneaking matters beyond the cones. Sneaking itself stays silent. Heard
+  // footsteps outweigh the calm-down: the guard grows suspicious, not calmer.
+  if (!seen && player.moving && !player.sneak) {
+    const dist = Math.hypot(player.x - guard.x, player.y - guard.y);
+    if (dist < 150) {
+      rate = 0.3;
+      guard.lastSeen = { x: player.x, y: player.y };
+    }
+  }
+  guard.suspicion = Math.max(0, Math.min(1, guard.suspicion + rate * dt));
 
   // Entering a chase always starts the fair grace window first.
   if (guard.mode !== 'chase' && guard.suspicion >= 1) {
